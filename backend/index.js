@@ -20,16 +20,21 @@ const server = createServer(app);
 // ================= CONFIG =================
 const PORT = process.env.PORT || 4000;
 
-// ✅ ALLOWED FRONTEND ORIGINS (FINAL)
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://campus-kart-pi.vercel.app"
-];
-
 // ================= SOCKET.IO =================
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+
+      if (
+        origin === "http://localhost:5173" ||
+        origin.endsWith(".vercel.app")
+      ) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Not allowed by CORS (Socket)"));
+    },
     methods: ["GET", "POST"],
     credentials: true
   }
@@ -57,15 +62,18 @@ mongoose
 // ================= MIDDLEWARE =================
 app.use(
   cors({
-    origin: function (origin, callback) {
-      // Allow server-to-server, Postman, etc.
+    origin: (origin, callback) => {
       if (!origin) return callback(null, true);
 
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
+      if (
+        origin === "http://localhost:5173" ||
+        origin.endsWith(".vercel.app")
+      ) {
+        return callback(null, true);
       }
+
+      console.log("❌ Blocked by CORS:", origin);
+      return callback(new Error("Not allowed by CORS"));
     },
     credentials: true
   })
