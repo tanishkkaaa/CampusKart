@@ -19,18 +19,17 @@ const server = createServer(app);
 
 // ================= CONFIG =================
 const PORT = process.env.PORT || 4000;
-const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN;
 
-// 🚨 Safety check
-if (!CLIENT_ORIGIN) {
-  console.error("❌ CLIENT_ORIGIN is missing in environment variables");
-  process.exit(1);
-}
+// ✅ ALLOWED FRONTEND ORIGINS (FINAL)
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://campus-kart-pi.vercel.app"
+];
 
 // ================= SOCKET.IO =================
 const io = new Server(server, {
   cors: {
-    origin: CLIENT_ORIGIN,
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
     credentials: true
   }
@@ -58,7 +57,16 @@ mongoose
 // ================= MIDDLEWARE =================
 app.use(
   cors({
-    origin: CLIENT_ORIGIN,
+    origin: function (origin, callback) {
+      // Allow server-to-server, Postman, etc.
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true
   })
 );
