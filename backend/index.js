@@ -17,11 +17,17 @@ import { configureChatSocket } from "./socket/chatSocket.js";
 const app = express();
 const server = createServer(app);
 
-// ===== CONFIG =====
-const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "*";
+// ================= CONFIG =================
 const PORT = process.env.PORT || 4000;
+const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN;
 
-// ===== SOCKET.IO SETUP =====
+// 🚨 Safety check
+if (!CLIENT_ORIGIN) {
+  console.error("❌ CLIENT_ORIGIN is missing in environment variables");
+  process.exit(1);
+}
+
+// ================= SOCKET.IO =================
 const io = new Server(server, {
   cors: {
     origin: CLIENT_ORIGIN,
@@ -30,10 +36,10 @@ const io = new Server(server, {
   }
 });
 
-// ✅ CALL SOCKET FUNCTION
+// Initialize socket handlers
 configureChatSocket(io);
 
-// ===== MONGODB =====
+// ================= DATABASE =================
 const MONGO_URI = process.env.MONGO_URI;
 
 if (!MONGO_URI) {
@@ -44,12 +50,15 @@ if (!MONGO_URI) {
 mongoose
   .connect(MONGO_URI)
   .then(() => console.log("✅ MongoDB connected"))
-  .catch((err) => console.error("❌ MongoDB error:", err));
+  .catch((err) => {
+    console.error("❌ MongoDB error:", err);
+    process.exit(1);
+  });
 
-// ===== MIDDLEWARE =====
+// ================= MIDDLEWARE =================
 app.use(
   cors({
-    origin: true,
+    origin: CLIENT_ORIGIN,
     credentials: true
   })
 );
@@ -58,17 +67,17 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// ===== ROUTES =====
+// ================= ROUTES =================
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/chat", chatRoutes);
 
-// ===== HEALTH CHECK =====
+// ================= HEALTH CHECK =================
 app.get("/", (req, res) => {
   res.send("✅ CampusKart Backend is running");
 });
 
-// ===== START SERVER =====
+// ================= START SERVER =================
 server.listen(PORT, () => {
-  console.log(`🚀 Server running at http://localhost:${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
