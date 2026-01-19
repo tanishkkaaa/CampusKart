@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../../services/Api"; // ✅ USE CENTRAL API
 import "./Marketplace.css"; // IMPORTANT
-
-const API_BASE = "https://campuskart-7lsu.onrender.com/api";
 
 export default function CreateProduct() {
   const navigate = useNavigate();
@@ -49,13 +47,6 @@ export default function CreateProduct() {
     setIsSubmitting(true);
 
     try {
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        alert("Login required");
-        return;
-      }
-
       const imageBase64Array = await Promise.all(
         photos.map(
           file =>
@@ -76,9 +67,7 @@ export default function CreateProduct() {
         images: imageBase64Array.map(img => ({ url: img }))
       };
 
-      await axios.post(`${API_BASE}/products`, payload, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.post("/products", payload); // ✅ NO HARDCODED URL
 
       alert("✅ Product Listed");
       navigate("/products");
@@ -87,6 +76,7 @@ export default function CreateProduct() {
       console.error(err);
       alert("Error creating product");
     }
+
     setIsSubmitting(false);
   };
 
@@ -122,27 +112,25 @@ export default function CreateProduct() {
         <div className="create-field">
           <label>Condition *</label>
           <select
-  name="condition"
-  value={formData.condition}
-  onChange={handleInputChange}
->
-  <option value="">Select</option>
-  <option value="new">New</option>
-  <option value="like-new">Like New</option>
-  <option value="good">Good</option>
-  <option value="fair">Fair</option>
-  <option value="needs-repair">Needs Repair</option>
-</select>
-
+            name="condition"
+            value={formData.condition}
+            onChange={handleInputChange}
+          >
+            <option value="">Select</option>
+            <option value="new">New</option>
+            <option value="like-new">Like New</option>
+            <option value="good">Good</option>
+            <option value="fair">Fair</option>
+            <option value="needs-repair">Needs Repair</option>
+          </select>
         </div>
 
         <div className="create-field">
           <label>Price (₹) *</label>
-         <input
-  type="text"
-  name="price"
-  pattern="[0-9]*"
-
+          <input
+            type="text"
+            name="price"
+            pattern="[0-9]*"
             value={formData.price}
             onChange={handleInputChange}
           />
@@ -159,27 +147,24 @@ export default function CreateProduct() {
         </div>
 
         <div className="create-field">
+          <label>Upload Photos *</label>
 
-  <label>Upload Photos *</label>
+          <div className="upload-box">
+            <input
+              id="fileUpload"
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handlePhotoUpload}
+              hidden
+            />
 
-  <div className="upload-box">
-    <input
-      id="fileUpload"
-      type="file"
-      accept="image/*"
-      multiple
-      onChange={handlePhotoUpload}
-      hidden
-    />
-
-    <label htmlFor="fileUpload" className="upload-label">
-      Click to uplaod photos
-      <span>Max 5 images</span>
-    </label>
-  </div>
-
-</div>
-
+            <label htmlFor="fileUpload" className="upload-label">
+              Click to upload photos
+              <span>Max 5 images</span>
+            </label>
+          </div>
+        </div>
 
         {preview.length > 0 && (
           <div className="preview-grid">

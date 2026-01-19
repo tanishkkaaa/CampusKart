@@ -4,7 +4,8 @@ import ChatWindow from "./Chat/ChatWindow";
 import { getOrCreateChat } from "../services/chatServices";
 import "../../src/chat.css";
 
-const SOCKET_URL = "https://campuskart-7lsu.onrender.com";
+// ✅ USE SAME BACKEND URL AS API (NO /api)
+const SOCKET_URL = import.meta.env.VITE_BACKEND_URL;
 
 export default function ChatPopup({ productId, otherUserId, onClose }) {
   const [chat, setChat] = useState(null);
@@ -14,7 +15,9 @@ export default function ChatPopup({ productId, otherUserId, onClose }) {
   if (!productId || !otherUserId) return null;
 
   useEffect(() => {
-    const s = io(SOCKET_URL);
+    const s = io(SOCKET_URL, {
+      withCredentials: true
+    });
     setSocket(s);
 
     return () => s.disconnect();

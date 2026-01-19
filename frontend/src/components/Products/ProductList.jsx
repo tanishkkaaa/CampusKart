@@ -1,7 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-
-const API_BASE = "https://campuskart-7lsu.onrender.com";
+import api from "../../services/Api"; // ✅ CENTRAL API
 
 export default function ProductList({ products, onDeleted }) {
   const navigate = useNavigate();
@@ -26,11 +24,7 @@ export default function ProductList({ products, onDeleted }) {
     }
 
     try {
-      const token = localStorage.getItem("token");
-
-      await axios.delete(`${API_BASE}/products/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.delete(`/products/${id}`);
 
       alert("✅ Product deleted");
 
@@ -52,7 +46,6 @@ export default function ProductList({ products, onDeleted }) {
 
           {/* IMAGE */}
           <div className="product-image">
-
             <img
               src={product.images?.[0]?.url || "/placeholder.jpg"}
               alt={product.title}
@@ -64,7 +57,6 @@ export default function ProductList({ products, onDeleted }) {
                 {product.condition}
               </span>
             )}
-
           </div>
 
           {/* INFO */}
@@ -99,7 +91,7 @@ export default function ProductList({ products, onDeleted }) {
               </span>
             </div>
 
-            {/* ✅ ACTION BUTTONS */}
+            {/* ACTION BUTTONS */}
             <div
               style={{
                 display: "flex",

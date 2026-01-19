@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import axios from "axios";
 import "../../chat.css";
 import { getChatMessages } from "../../services/chatServices";
-
-const API_BASE = "https://campuskart-7lsu.onrender.com/api";
+import api from "../../services/Api"; // ✅ CENTRAL API
 
 export default function ChatWindow({ chat, onClose, socket }) {
   const [messages, setMessages] = useState([]);
@@ -37,7 +35,7 @@ export default function ChatWindow({ chat, onClose, socket }) {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // ✅ Send message
+  // ✅ Send message (socket-only, unchanged)
   const sendMessage = () => {
     if (!text.trim()) return;
 
@@ -56,13 +54,7 @@ export default function ChatWindow({ chat, onClose, socket }) {
     if (!window.confirm("Delete this chat permanently?")) return;
 
     try {
-      const token = localStorage.getItem("token");
-
-      await axios.delete(`${API_BASE}/chat/${chat._id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+      await api.delete(`/chat/${chat._id}`);
 
       alert("✅ Chat deleted successfully");
 
@@ -80,17 +72,7 @@ export default function ChatWindow({ chat, onClose, socket }) {
     if (!window.confirm("Report this user for inappropriate behaviour?")) return;
 
     try {
-      const token = localStorage.getItem("token");
-
-      await axios.post(
-        `${API_BASE}/chat/report/${chat._id}`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
+      await api.post(`/chat/report/${chat._id}`);
 
       alert("✅ User reported successfully");
 

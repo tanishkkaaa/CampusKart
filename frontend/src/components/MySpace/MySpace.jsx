@@ -1,11 +1,9 @@
 import "./MySpace.css";
 import { useEffect, useState } from "react";
-import axios from "axios";
 import ProductList from "../Products/ProductList";
 import ChatPopup from "../Chat";
 import { useNavigate } from "react-router-dom";
-
-const API_BASE = "https://campuskart-7lsu.onrender.com/api";
+import api from "../../services/Api"; // ✅ CENTRAL API
 
 export default function MySpace() {
   const navigate = useNavigate();
@@ -41,30 +39,25 @@ export default function MySpace() {
         setNewName(user.name || user.username);
 
         // ✅ LOAD MY PRODUCTS
-        const res = await axios.get(`${API_BASE}/products`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const res = await api.get("/products");
 
         if (res.data.success) {
           const filtered = res.data.products.filter((product) => {
-  if (!product.seller) return false;
+            if (!product.seller) return false;
 
-  const sellerId =
-    typeof product.seller === "object"
-      ? product.seller._id
-      : product.seller;
+            const sellerId =
+              typeof product.seller === "object"
+                ? product.seller._id
+                : product.seller;
 
-  return sellerId === (user._id || user.id);
-});
-
+            return sellerId === (user._id || user.id);
+          });
 
           setMyProducts(filtered);
         }
 
         // ✅ LOAD MY CHATS
-        const chatsRes = await axios.get(`${API_BASE}/chat`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const chatsRes = await api.get("/chat");
 
         if (Array.isArray(chatsRes.data)) {
           setMyChats(chatsRes.data);
@@ -91,11 +84,7 @@ export default function MySpace() {
     if (!confirm) return;
 
     try {
-      const token = localStorage.getItem("token");
-
-      await axios.delete(`${API_BASE}/products/${productId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.delete(`/products/${productId}`);
 
       setMyProducts(prev => prev.filter(p => p._id !== productId));
       alert("✅ Product deleted");
@@ -117,12 +106,9 @@ export default function MySpace() {
     setSaving(true);
 
     try {
-      const token = localStorage.getItem("token");
-
-      const res = await axios.put(
-        `${API_BASE}/auth/update-profile`,
-        { name: newName, currentPassword, newPassword },
-        { headers: { Authorization: `Bearer ${token}` } }
+      const res = await api.put(
+        "/auth/update-profile",
+        { name: newName, currentPassword, newPassword }
       );
 
       if (res.data.success) {
@@ -208,7 +194,7 @@ export default function MySpace() {
           </>
         )}
 
-        {/* ✅ LISTINGS + EDIT/DELETE */}
+        {/* LISTINGS */}
         {activeTab === "listings" && (
           <>
             <h2 className="myspace-title">My Listings</h2>
@@ -233,7 +219,6 @@ export default function MySpace() {
                       <h3>{product.title}</h3>
                       <p className="price">₹{product.price}</p>
 
-                      {/* ✅ EDIT + DELETE */}
                       <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
                         <button
                           className="chat-btn"
@@ -329,7 +314,7 @@ export default function MySpace() {
 
       </div>
 
-      {/* ✅ CHAT POPUP */}
+      {/* CHAT POPUP */}
       {activeChat && (
         <ChatPopup
           productId={activeChat.productId}

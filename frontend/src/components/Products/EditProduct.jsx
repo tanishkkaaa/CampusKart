@@ -1,9 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../../services/Api"; // ✅ CENTRAL API
 import "./Marketplace.css";
-
-const API_BASE = "https://campuskart-7lsu.onrender.com/api";
 
 export default function EditProduct() {
   const { id } = useParams();
@@ -23,11 +21,7 @@ export default function EditProduct() {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const token = localStorage.getItem("token");
-
-        const res = await axios.get(`${API_BASE}/products/${id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const res = await api.get(`/products/${id}`);
 
         if (res.data.success) {
           const p = res.data.product;
@@ -64,11 +58,7 @@ export default function EditProduct() {
     setSaving(true);
 
     try {
-      const token = localStorage.getItem("token");
-
-      await axios.put(`${API_BASE}/products/${id}`, formData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.put(`/products/${id}`, formData);
 
       alert("✅ Product updated");
       navigate("/myspace");

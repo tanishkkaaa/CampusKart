@@ -1,10 +1,8 @@
 import { useEffect, useState, useContext } from "react";
-import axios from "axios";
 import { AuthContext } from "../../context/AuthContext";
 import ChatPopup from "../Chat";
+import api from "../../services/Api"; // ✅ USE CENTRAL API
 import "./Marketplace.css";
-
-const API_BASE = "https://campuskart-7lsu.onrender.com/api";
 
 const categories = [
   { label: "All", value: "" },
@@ -26,7 +24,7 @@ export default function Marketplace() {
 
   const fetchProducts = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/products`, {
+      const res = await api.get("/products", {
         params: {
           search,
           category: selectedCategory
@@ -56,7 +54,7 @@ export default function Marketplace() {
     fetchProducts();
   };
 
-  // ✅ REPLACED NAVIGATION WITH POPUP CHAT
+  // ✅ REPLACED NAVIGATION WITH POPUP CHAT (UNCHANGED LOGIC)
   const handleChat = (product) => {
     const token = localStorage.getItem("token");
     const loggedUser = JSON.parse(localStorage.getItem("user"));
@@ -83,7 +81,6 @@ export default function Marketplace() {
       return;
     }
 
-    // ✅ THIS OPENS SAME POPUP AS MYSPACE
     setActiveChat({
       productId,
       otherUserId: sellerId
@@ -180,7 +177,6 @@ export default function Marketplace() {
                     <div className="product-footer">
                       <span className="price">₹{product.price}</span>
 
-                      {/* ✅ FIXED BUTTON */}
                       <button
                         className="chat-btn"
                         onClick={() => handleChat(product)}
@@ -200,7 +196,7 @@ export default function Marketplace() {
         </main>
       </div>
 
-      {/* ✅ CHAT POPUP (SAME AS MYSPACE) */}
+      {/* ✅ CHAT POPUP */}
       {activeChat && (
         <ChatPopup
           productId={activeChat.productId}
