@@ -24,13 +24,15 @@ const PORT = process.env.PORT || 4000;
 const io = new Server(server, {
   cors: {
     origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
+      // allow server-to-server, Postman, health checks
+      if (!origin) return callback(null, origin);
 
       if (
         origin === "http://localhost:5173" ||
         origin.endsWith(".vercel.app")
       ) {
-        return callback(null, true);
+        // ✅ IMPORTANT: return exact origin
+        return callback(null, origin);
       }
 
       return callback(new Error("Not allowed by CORS (Socket)"));
@@ -63,13 +65,14 @@ mongoose
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
+      if (!origin) return callback(null, origin);
 
       if (
         origin === "http://localhost:5173" ||
         origin.endsWith(".vercel.app")
       ) {
-        return callback(null, true);
+        // ✅ IMPORTANT: return exact origin
+        return callback(null, origin);
       }
 
       console.log("❌ Blocked by CORS:", origin);
